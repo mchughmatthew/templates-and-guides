@@ -1,6 +1,6 @@
 ---
 title: "basic_stats"
-author: "MdM"
+author: "Matthew D. McHugh"
 date: "March 3, 2019"
 output: pdf_document
 ---
