@@ -1,0 +1,18 @@
+---
+title: "stat545"
+author: "MdM"
+date: "March 3, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r pckgs, echo=FALSE}
+install.packages("gapminder")
+library(gapminder)
+```
+## R Markdown
+```{r}
+str(gapminder)
+```
