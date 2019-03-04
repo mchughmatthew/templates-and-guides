@@ -1,0 +1,194 @@
+---
+title: "rmarkdown example"
+author: "MdM"
+date: "March 3, 2019"
+output: html_document
+---
+
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE)
+# This is the standard .Rmd setup
+```
+
+
+```{r load_packages, include=FALSE, echo = FALSE }
+#LOAD PACKAGES -- This will check if a package is installed and if not, install it
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE, repos = "http://cran.us.r-project.org")
+  sapply(pkg, require, character.only = TRUE)
+}
+#must set up the CRAN location url
+packages <- c("foreign", "lessR", "rmarkdown", "tidyverse", "gt", "glue", "AER", "psych", "Hmisc", "ggplot2", "relaimpo")
+#have to set the packages
+ipak(packages)
+```
+### Packages used in this analysis
+```{r, echo = FALSE}
+packages
+```
+
+
+
+
+```{r load_data}
+# load the California Schools Dataset and give the dataset a shorter name
+data(CASchools)
+cas <- CASchools
+# Convert grade to numeric
+# table(cas$grades)
+cas$gradesN <- cas$grades == "KK-08"
+# Get the set of numeric variables
+v <- setdiff(names(cas), c("district", "school", 
+    			"county", "grades"))
+```
+
+### Q 1 What does the CASchools dataset involve?
+Quoting the help (i.e., `?CASchools`), the data is "from all 420 K-6 and K-8 districts in California with data available for 1998 and 1999" and the variables are:
+
+    * district: character. District code.
+    * school: character. School name.
+    * county: factor indicating county.
+    * grades: factor indicating grade span of district.
+    * students: Total enrollment.
+    * teachers: Number of teachers.
+    * calworks: Percent qualifying for CalWorks (income assistance).
+    * lunch: Percent qualifying for reduced-price lunch.
+    * computer: Number of computers.
+    * expenditure: Expenditure per student.
+    * income: District average income (in USD 1,000).
+    * english: Percent of English learners.
+    * read: Average reading score.
+    * math: Average math score.
+
+Let's look at the basic structure of the data frame. i.e., the number of observations and the types of values:
+
+```{r}
+str(cas)
+# Hmisc::describe(cas) # For more extensive summary statistics
+```
+
+
+
+### Q. 2  To what extent does expenditure per student vary?
+```{r cas2, message=FALSE, warning=FALSE}
+qplot(expenditure, data = cas) + xlim(0, 8000) + 
+		xlab("Money spent per student ($)") +
+		ylab("Count of schools")
+round(t(psych::describe(cas$expenditure)), 1)
+```
+
+The greatest expenditure per student is around double that of the least expenditure  per student.
+
+
+### Q. 3a  What predicts expenditure per student?
+```{r}
+# Compute and format set of correlations
+corExp <- cor(cas["expenditure"], 
+		cas[setdiff(v, "expenditure")])
+corExp <- round(t(corExp),2)
+corExp[order(corExp[,1], decreasing = TRUE), , 
+		drop = FALSE]
+```
+
+More is spent per student in schools :
+
+1. where people with greater incomes live
+2. reading scores are higher
+3. that are K-6
+
+
+### Q. 4  what is the relationship between district level maths and reading scores?
+```{r cas4, message=FALSE}
+ggplot(cas, aes(read, math)) + geom_point() + 
+		geom_smooth()
+```
+
+At the district level, the correlation is very strong (r = The correlation is `r round(cor(cas$read, cas$math), 2)`). From prior experience I'd expect correlations at the individual-level in the .3 to .6 range.  Thus, these results are consistent with group-level relationships  being much larger than individual-level relationships.
+
+### Q. 5 What is the relationship between maths and reading after partialling out other effects?
+
+
+```{r}
+# command has strange syntax requiring column numbers rather than variable names
+partial.r(cas[v], 
+          c(which(names(cas[v]) == "read"), which(names(cas[v]) == "math")), 
+          which(!names(cas[v]) %in% c("read", "math"))
+          )
+```
+
+The partial correlation is still very strong but is substantially reduced.
+
+
+### Q. 6 What fraction of a computer does each student have?
+```{r}
+cas$compstud <- cas$computer / cas$students
+describe(cas$compstud)
+qplot(compstud, data = cas)
+```
+
+The mean number of computers per student is `r round(mean(cas$compstud), 3)`.
+
+
+### Q. 7 What is a good model of the combined effect of other variables on academic performance (i.e., math and read)?
+```{r cas7}
+# Examine correlations between variables
+psych::pairs.panels(cas[v])
+```
+
+`pairs.panels` shows correlations in the upper triangle, scatterplots in the lower triangle, and variable names and distributions on the main diagonal.
+After examining the plot several ideas emerge.
+
+```{r cas7.transformation, tidy=FALSE}
+# (a) students is a count and could be log transformed
+cas$studentsLog <- log(cas$students)
+# (b) teachers is not the variable of interest:
+#	it is the number of students per teacher
+cas$studteach <- cas$students /cas$teachers
+# (c) computers is not the variable of interest:
+#  it is the ratio of computers to students
+# table(cas$computer==0) 
+# Note some schools have no computers so ratio would be problematic.
+# Take percentage of a computer instead
+cas$compstud <- cas$computer / cas$students 
+# (d) math and reading are correlated highly, reduce to one variable
+cas$performance <- as.numeric(
+		scale(scale(cas$read) + scale(cas$math)))
+```
+Normally, I'd add all these transformations to an initial data transformation file that I call in the first block, but for the sake of the narrative, I'll leave them here.
+
+Let's examine correlations between predictors and outcome.
+```{r}
+m1cor <- cor(cas$performance, 
+		cas[c("studentsLog", "studteach",	"calworks",  
+						"lunch", "compstud", "income", 
+						"expenditure", "gradesN")])
+t(round(m1cor, 2))
+```
+
+
+Let's examine the multiple regression.
+```{r}
+m1 <- lm(performance ~ studentsLog + studteach + 
+				calworks + lunch + compstud
+				+ income + expenditure + grades, data = cas)		
+summary(m1)
+```
+And some indicators of predictor relative importance.
+```{r}
+# calc.relimp from relaimpo package.
+(m1relaimpo <- calc.relimp(m1,	type="lmg",	rela=TRUE))
+```
+
+Thus, we can conclude that:
+
+1. Income and indicators of income (e.g., low levels of lunch vouchers) are the two main predictors. Thus, schools with greater average income tend to have better student performance.
+2. Schools with more computers per student have better student performance.
+3. Schools with fewer students per teacher have better student performance.
+
+For more information about relative importance and the `relaimpo` package measures check out [Ulrike Grömping's website](http://prof.beuth-hochschule.de/groemping/relaimpo/).
+Of course this is all observational data with the usual caveats regarding causal interpretation.
+
+## Now, let's look at some weird stuff.
