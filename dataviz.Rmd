@@ -1,0 +1,38 @@
+---
+title: "rmarkdown dataviz example from healy text"
+author: "MdM"
+date: "March 4, 2019"
+output: html_document
+---
+
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE)
+# This is the standard .Rmd setup
+```
+
+
+```{r load_packages, include=FALSE, echo = FALSE }
+#LOAD PACKAGES -- This will check if a package is installed and if not, install it
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE, repos = "http://cran.us.r-project.org")
+  sapply(pkg, require, character.only = TRUE)
+}
+#must set up the CRAN location url
+packages <- c("foreign", "lessR", "rmarkdown", "tidyverse", "gt", "glue", "AER", "psych", "Hmisc", "ggplot2", "relaimpo", "socviz")
+#have to set the packages
+ipak(packages)
+```
+### Packages used in this analysis
+```{r, echo = FALSE}
+packages
+```
+
+### Load the Gapminder data
+```{r load_data, echo=FALSE, warning=FALSE}
+library(gapminder)
+gapminder
+```
+
