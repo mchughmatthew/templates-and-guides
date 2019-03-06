@@ -2,7 +2,7 @@
 title: "rmarkdown dataviz example from healy text"
 author: "MdM"
 date: "March 4, 2019"
-output: html_document
+output: pdf_document
 ---
 
 
@@ -35,17 +35,30 @@ packages
 library(gapminder)
 var.names<-tolower(colnames(gapminder))
 colnames(gapminder)<-var.names
+str(gapminder)
 gapminder
 ```
+\pagebreak
+
 ### Basic plot of Life Expectancy by GDP
->   two arguments here:
-     data= tells r where to find the data
-     mapping = aes() links *variables* to things you will *see in the plot*
+>   two arguments here:  
+          `data=` tells r where to find the data  
+          `mapping = aes()` links *variables* to things you will *see in the plot*
 
 ```{r first_plot}
 p <- ggplot(data=gapminder,
             mapping = aes(x=gdppercap, y=lifeexp))
 p + geom_point()
 ```
+
+\pagebreak
+
+### Smoothed plot of Life Expectancy by Year
+```{r plot}
+p <- ggplot(data=gapminder,
+            mapping = aes(x=year, y=lifeexp))
+p + geom_smooth()
+```
+
 
 
