@@ -2,7 +2,7 @@
 title: "rmarkdown dataviz example from healy text"
 author: "MdM"
 date: "March 4, 2019"
-output: pdf_document
+output: html_document
 ---
 
 
@@ -60,5 +60,100 @@ p <- ggplot(data=gapminder,
 p + geom_smooth()
 ```
 
+\pagebreak
 
+### Smoothed plot of GDP by Life Expectancy
+```{r}
+p <- ggplot(data=gapminder,
+            mapping = aes(x=gdppercap, y=lifeexp))
+p + geom_smooth()
+```
 
+\pagebreak
+
+### Smoothed plot of GDP by Life Expectancy
+```{r}
+p <- ggplot(data=gapminder,
+            mapping = aes(x=gdppercap, y=lifeexp))
+p + geom_smooth()
+```
+
+\pagebreak
+
+### Smoothed plot of GDP by Life Expectancy with points
+```{r}
+p <- ggplot(data=gapminder,
+            mapping = aes(x=gdppercap, y=lifeexp))
+p + geom_point() + geom_smooth() 
+```
+
+\pagebreak
+
+### Smoothed plot of Log transformed GDP by Life Expectancy with points
+```{r}
+p <- ggplot(data=gapminder,
+            mapping = aes(x=gdppercap, y=lifeexp))
+p + geom_point() + geom_smooth() + scale_x_log10()
+```
+
+\pagebreak
+
+### Smoothed plot of Log transformed GDP by Life Expectancy with points scaled as dollars  
+calls the `scales` package
+```{r}
+p <- ggplot(data=gapminder,
+            mapping = aes(x=gdppercap, y=lifeexp))
+p + geom_point() + geom_smooth(method="gam") + scale_x_log10(labels = scales::dollar)
+```
+\pagebreak
+
+### A more polished plot
+```{r polished}
+p <- ggplot(data=gapminder, 
+     mapping = aes(x=gdppercap, y=lifeexp))
+          p + geom_point() + 
+          geom_smooth(method="gam") + 
+          scale_x_log10(labels = scales::dollar) +
+          labs(x="GDP Per Capita", y = "Life Expectancy in Years",
+               title = "Economic Growth and Life Expectancy",
+               subtitle="Data points are country-years",
+               caption = "Source: Gapminder")
+```
+
+\pagebreak
+
+### Mapping aesthetics 
+
+##### Specifies that a *variable* is expressed by a visual element (e.g., color, size, shape)
+```{r}
+p <- ggplot(data=gapminder, 
+     mapping = aes(x=gdppercap, y=lifeexp,
+     color = continent, fill = continent))
+          p + geom_point() + 
+          geom_smooth(method="loess") + 
+          scale_x_log10(labels = scales::dollar) 
+```
+
+\pagebreak
+
+### Aesthetics can be mapped by geom 
+
+##### By default `geoms` inherit mappings from `ggplot()` function. You can change this by adding a `mapping` statement to the geom also
+```{r}
+p <- ggplot(data=gapminder, 
+     mapping = aes(x=gdppercap, y=lifeexp))
+          p + geom_point(mapping = aes(color=continent)) + 
+          geom_smooth(method="loess") + 
+          scale_x_log10(labels = scales::dollar) 
+```
+\pagebreak
+
+### Can also map *continuous variable* to the color aesthetics
+
+```{r}
+p <- ggplot(data=gapminder, 
+     mapping = aes(x=gdppercap, y=lifeexp))
+          p + geom_point(mapping = aes(color=log(pop))) + 
+          geom_smooth(method="loess") + 
+          scale_x_log10(labels = scales::dollar) 
+```
