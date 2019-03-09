@@ -182,7 +182,7 @@ p <- ggplot(data=gapminder,
 
 ### Save graph using `ggsave()`
 
-##### This one will save plot as `p.out` in location set by `here` function
+##### This one will save plot as `p.out` in location set by `here` function and sets dimensions
 ```{r savefile}
 p <- ggplot(data=gapminder, 
      mapping = aes(x=gdppercap, y=lifeexp))
@@ -191,6 +191,59 @@ p.out <- p + geom_point(mapping = aes(color=continent)) +
           geom_smooth(method="loess") + 
           scale_x_log10(labels = scales::dollar) 
 
-ggsave(here("myfigure.tiff"), plot = p.out)
+ggsave(here("myfigure.tiff"), plot = p.out,
+          height = 8, width = 10, units = "in")
 ```
 
+\pagebreak
+
+# Grouped data and `group` aesthetic
+
+##### This one will make a line plot of gdp per year, by country
+```{r groups}
+p <- ggplot(data=gapminder, 
+     mapping = aes(x=year, y=gdppercap))
+p + geom_line(aes(group=country)) + 
+          scale_y_log10(labels = scales::dollar) 
+```
+
+\pagebreak
+
+# Use `facet_wrap()` to make small multiples
+
+##### This one will make a a separate plot for each `facet` variable
+```{r facet}
+p <- ggplot(data=gapminder, 
+     mapping = aes(x=year, y=gdppercap))
+p + geom_line(aes(group=country)) + 
+          scale_y_log10(labels = scales::dollar) + facet_wrap(~continent)
+```
+
+\pagebreak
+
+# set `ncol` in facet_wrap()` to lineup
+
+##### This one will make 5 columns so they are lined up
+```{r facet5, fig.width=12, fig.height=9}
+p <- ggplot(data=gapminder, 
+     mapping = aes(x=year, y=gdppercap))
+p + geom_line(aes(group=country)) + 
+     facet_wrap(~continent, ncol=5)  + 
+     scale_y_log10(labels = scales::dollar)
+```
+
+\pagebreak
+
+# Bring it all together
+##### This one will make 5 columns so they are lined up
+```{r alltogether, fig.width=12, fig.height=9}
+p <- ggplot(data=gapminder, 
+     mapping = aes(x=year, y=gdppercap))
+p + geom_line(color="gray70", aes(group=country)) +
+     geom_smooth(size = 1.1, method = "loess", se = FALSE) +
+     facet_wrap(~continent, ncol=5)  + 
+     scale_y_log10(labels = scales::dollar) +
+     labs(x ="YEAR",
+          y= "GDP per Capita",
+          title = "GDP Per Capita on Five Continents")
+```
