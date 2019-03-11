@@ -21,7 +21,7 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 #must set up the CRAN location url
-packages <- c("foreign", "lessR", "rmarkdown", "tidyverse", "gt", "glue", "AER", "psych", "Hmisc", "ggplot2", "relaimpo", "socviz", "here")
+packages <- c("foreign", "lessR", "rmarkdown", "tidyverse", "gt", "glue", "AER", "psych", "Hmisc", "ggplot2", "relaimpo", "socviz", "gapminder", "gss_sm", "here")
 #have to set the packages
 ipak(packages)
 ```
@@ -247,3 +247,64 @@ p + geom_line(color="gray70", aes(group=country)) +
           y= "GDP per Capita",
           title = "GDP Per Capita on Five Continents")
 ```
+
+
+\pagebreak
+
+### Load the new data `gss_sm`; a subset of **General Social Survey** & lowercase variables
+```{r load_gss, echo=FALSE, warning=FALSE}
+gss_sm
+str(gss_sm)
+```
+
+\pagebreak
+
+### This one will `facet` by 2 variables
+```{r, fig.width=12, fig.height=9}
+p <- ggplot(data=gss_sm, 
+     mapping = aes(x=age, y=childs))
+p + geom_point(alpha=0.2) +
+     geom_smooth() +
+     facet_grid(sex~race)
+```
+
+
+\pagebreak
+
+### `geoms`  have associated `stat_` functions
+##### this `geom_bar` default is `stat_count`
+```{r, fig.width=12, fig.height=9}
+p <- ggplot(data=gss_sm, 
+     mapping = aes(x=bigregion))
+p + geom_bar()
+```
+\pagebreak
+
+### Change `stat_` function
+##### this changes `geom_bar` default is to `prop` but isnt quite right
+```{r, fig.width=12, fig.height=9}
+p <- ggplot(data=gss_sm, 
+     mapping = aes(x=bigregion))
+p + geom_bar(mapping = aes(y=..prop..))
+```
+
+\pagebreak
+
+### Change `stat_` function
+##### this changes `geom_bar` default is to `prop` and sets the denominator
+```{r, fig.width=12, fig.height=9}
+p <- ggplot(data=gss_sm, 
+     mapping = aes(x=bigregion))
+p + geom_bar(mapping = aes(y=..prop.., group=1))
+```
+
+
+
+### Add color
+```{r}
+p <- ggplot(data=gss_sm, 
+     mapping = aes(x=bigregion, fill = bigregion))
+p + geom_bar()
+```
+
+
